@@ -3,8 +3,8 @@ from Blockchain import Blockchain
 
 class Node:
     def __init__(self):
-        self.blockchain = Blockchain()
-        self.node_id = 'Mohammad'
+        self.public_key = 'Mohammad'
+        self.blockchain = Blockchain(self.public_key)
 
     @staticmethod
     def get_user_choice():
@@ -16,6 +16,13 @@ class Node:
         tx_recipient = input('Enter the recipient of the transaction: ')
         tx_amount = float(input('Your transaction amount please: '))
         return tx_recipient, tx_amount
+
+    def print_blockchain(self):
+        for block in self.blockchain.chain:
+            print(block)
+            print('-' * 30)
+        else:
+            print('=' * 20)
 
     def listen_for_input(self):
         waiting_for_input = True
@@ -33,14 +40,26 @@ class Node:
             print('q: Quit')
             user_choice = self.get_user_choice()
             print('=' * 30)
+
             if user_choice == '1':
                 """ add transaction """
                 tx_data = self.get_transaction_value()
                 tx_recipient, tx_amount = tx_data
-                if self.blockchain.add_transaction(self.node_id, tx_recipient, tx_amount):
+                if self.blockchain.add_transaction(self.public_key, tx_recipient, tx_amount):
                     print("transaction Added!!!!")
                 else:
                     print("transaction failed!!!")
+
+            elif user_choice == '2':
+                """ Mining Blocks """
+                if self.blockchain.mine_block():
+                    print("Block Added!!!!")
+                else:
+                    print("Mining Block failed!!!")
+
+            elif user_choice == '3':
+                """ Print Blockchain """
+                self.print_blockchain()
 
             elif user_choice == 'q':
                 print("Exited!!!")

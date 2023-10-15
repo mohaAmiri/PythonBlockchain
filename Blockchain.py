@@ -10,7 +10,7 @@ MINING_REWARD = 10
 
 class Blockchain:
     def __init__(self, public_key):
-        genesis_block = Block(0, '', [])
+        genesis_block = Block(0, '', [], 100)
         self.chain = [genesis_block]
         self.open_transaction = []
         self.public_key = public_key
@@ -29,8 +29,10 @@ class Blockchain:
         reward_transaction = Transaction('MINING', self.public_key, MINING_REWARD)
         copied_transaction = self.open_transaction[:]
         copied_transaction.append(reward_transaction)
+        """ add POW """
+        proof = self.proof_of_work()
         """ generate new block and add to chain """
-        new_block = Block(index, previous_hash, copied_transaction)
+        new_block = Block(index, previous_hash, copied_transaction, proof)
         self.chain.append(new_block)
         self.open_transaction = []
         return True
@@ -54,3 +56,10 @@ class Blockchain:
                                 received_chain_tx, 0)
 
         return int(total_received - total_sent)
+
+    def proof_of_work(self):
+        previous_hash = hash_block(self.chain[-1])
+        proof = 0
+        while not Verification.valid_proof(self.open_transaction, previous_hash, proof):
+            proof += 1
+        return proof

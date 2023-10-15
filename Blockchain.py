@@ -1,5 +1,5 @@
 from functools import reduce
-
+import pickle
 from block import Block
 from transaction import Transaction
 from utility.hash_utils import hash_block
@@ -13,12 +13,14 @@ class Blockchain:
         genesis_block = Block(0, '', [], 100)
         self.chain = [genesis_block]
         self.open_transaction = []
+        self.load_data()
         self.public_key = public_key
 
     def add_transaction(self, sender, recipient, amount):
         transaction = Transaction(sender, recipient, amount)
         if Verification.verify_transaction(transaction, self.get_balance):
             self.open_transaction.append(transaction)
+            self.save_data()
             return True
         return False
 
@@ -35,6 +37,7 @@ class Blockchain:
         new_block = Block(index, previous_hash, copied_transaction, proof)
         self.chain.append(new_block)
         self.open_transaction = []
+        self.save_data()
         return True
 
     def get_balance(self):
@@ -63,3 +66,24 @@ class Blockchain:
         while not Verification.valid_proof(self.open_transaction, previous_hash, proof):
             proof += 1
         return proof
+
+    def save_data(self):
+        try:
+            with open('blockchain.txt', mode='wb') as file:
+                data = {
+                    'blockchain': self.chain,
+                    'ot': self.open_transaction
+                }
+                file.write(pickle.dumps(data))
+        except IOError:
+            print('Saving blockchain failed!!!')
+
+    def load_data(self):
+        try:
+            with open('blockchain.txt', mode='rb') as file:
+                context = pickle.loads(file.read())
+                self.chain = context['blockchain']
+                self.open_transaction = context['ot']
+                print('Data successfully loaded!!!')
+        except (IOError, IndexError):
+            pass

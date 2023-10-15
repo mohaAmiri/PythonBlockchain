@@ -1,4 +1,6 @@
 from Blockchain import Blockchain
+from block import Block
+from utility.verification import Verification
 
 
 class Node:
@@ -64,6 +66,12 @@ class Node:
             elif user_choice == 'q':
                 print("Exited!!!")
                 break
+
+            """ verify chain """
+            if not Verification.verify_chain(self.blockchain):
+                break
+
+            """ print balance of user """
             print('Balance of {}: {}'.format(self.public_key, self.blockchain.get_balance()))
 
 

@@ -64,6 +64,7 @@ class Node:
             elif user_choice == 'q':
                 print("Exited!!!")
                 break
+            print('Balance of {}: {}'.format(self.public_key, self.blockchain.get_balance()))
 
 
 node = Node()

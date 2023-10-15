@@ -3,6 +3,7 @@ from functools import reduce
 from block import Block
 from transaction import Transaction
 from utility.hash_utils import hash_block
+from utility.verification import Verification
 
 MINING_REWARD = 10
 
@@ -16,9 +17,10 @@ class Blockchain:
 
     def add_transaction(self, sender, recipient, amount):
         transaction = Transaction(sender, recipient, amount)
-        self.open_transaction.append(transaction)
-        self.get_balance()
-        return True
+        if Verification.verify_transaction(transaction, self.get_balance):
+            self.open_transaction.append(transaction)
+            return True
+        return False
 
     def mine_block(self):
         index = len(self.chain)
@@ -31,7 +33,6 @@ class Blockchain:
         new_block = Block(index, previous_hash, copied_transaction)
         self.chain.append(new_block)
         self.open_transaction = []
-        self.get_balance()
         return True
 
     def get_balance(self):

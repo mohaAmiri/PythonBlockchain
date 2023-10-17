@@ -14,8 +14,9 @@ class Blockchain:
         genesis_block = Block(0, '', [], 100)
         self.chain = [genesis_block]
         self.open_transaction = []
-        self.load_data()
         self.public_key = public_key
+        self.peer_nodes = set()
+        self.load_data()
 
     def add_transaction(self, sender, recipient, signature, amount):
         if self.public_key is None:
@@ -98,3 +99,14 @@ class Blockchain:
                 print('Data successfully loaded!!!')
         except (IOError, IndexError):
             pass
+
+    def add_peer_node(self, node):
+        self.peer_nodes.add(node)
+        self.save_data()
+
+    def remove_peer_node(self, node):
+        self.peer_nodes.discard(node)  # discard will delete object if it exists and if not does nothing
+        self.save_data()
+
+    def get_peer_nodes(self):
+        return list(self.peer_nodes)

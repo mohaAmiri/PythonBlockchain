@@ -4,6 +4,7 @@ from block import Block
 from transaction import Transaction
 from utility.hash_utils import hash_block
 from utility.verification import Verification
+from wallet import Wallet
 
 MINING_REWARD = 10
 
@@ -16,10 +17,10 @@ class Blockchain:
         self.load_data()
         self.public_key = public_key
 
-    def add_transaction(self, sender, recipient, amount):
+    def add_transaction(self, sender, recipient, signature, amount):
         if self.public_key is None:
             return False
-        transaction = Transaction(sender, recipient, amount)
+        transaction = Transaction(sender, recipient, signature, amount)
         if Verification.verify_transaction(transaction, self.get_balance):
             self.open_transaction.append(transaction)
             self.save_data()
@@ -31,9 +32,15 @@ class Blockchain:
             return False
         index = len(self.chain)
         previous_hash = hash_block(self.chain[-1])
-        """ Add Reward """
-        reward_transaction = Transaction('MINING', self.public_key, MINING_REWARD)
+
+        """ check verify signature """
         copied_transaction = self.open_transaction[:]
+        for tx in copied_transaction:
+            if not Wallet.verify_transaction(tx):
+                print('verify signature failed!!!')
+                return False
+        """ Add Reward """
+        reward_transaction = Transaction('MINING', self.public_key, '', MINING_REWARD)
         copied_transaction.append(reward_transaction)
         """ add POW """
         proof = self.proof_of_work()

@@ -1,11 +1,12 @@
 from utility.hash_utils import hash_block, hash_string_256
+from wallet import Wallet
 
 
 class Verification:
     @staticmethod
     def verify_transaction(transaction, get_balance):
         user_balance = get_balance()
-        if user_balance >= transaction.amount:
+        if user_balance >= transaction.amount and Wallet.verify_transaction(transaction):
             return True
         else:
             print('not enough balance!!!')

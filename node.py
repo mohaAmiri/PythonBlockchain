@@ -1,12 +1,13 @@
 from Blockchain import Blockchain
-from block import Block
 from utility.verification import Verification
+from wallet import Wallet
 
 
 class Node:
     def __init__(self):
-        self.public_key = 'Mohammad'
-        self.blockchain = Blockchain(self.public_key)
+        self.wallet = Wallet()
+        self.wallet.create_keys()
+        self.blockchain = Blockchain(self.wallet.public_key)
 
     @staticmethod
     def get_user_choice():
@@ -47,7 +48,7 @@ class Node:
                 """ add transaction """
                 tx_data = self.get_transaction_value()
                 tx_recipient, tx_amount = tx_data
-                if self.blockchain.add_transaction(self.public_key, tx_recipient, tx_amount):
+                if self.blockchain.add_transaction(self.wallet.public_key, tx_recipient, tx_amount):
                     print("transaction Added!!!!")
                 else:
                     print("transaction failed!!!")
@@ -63,6 +64,16 @@ class Node:
                 """ Print Blockchain """
                 self.print_blockchain()
 
+            elif user_choice == '5':
+                self.wallet.create_keys()
+                self.blockchain = Blockchain(self.wallet.public_key)
+            elif user_choice == '6':
+                self.wallet.load_keys()
+                self.blockchain = Blockchain(self.wallet.public_key)
+            elif user_choice == '7':
+                self.wallet.save_keys()
+
+
             elif user_choice == 'q':
                 print("Exited!!!")
                 break
@@ -72,7 +83,7 @@ class Node:
                 break
 
             """ print balance of user """
-            print('Balance of {}: {}'.format(self.public_key, self.blockchain.get_balance()))
+            print('Balance of {}: {}'.format(self.wallet.public_key, self.blockchain.get_balance()))
 
 
 node = Node()

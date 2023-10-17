@@ -17,6 +17,8 @@ class Blockchain:
         self.public_key = public_key
 
     def add_transaction(self, sender, recipient, amount):
+        if self.public_key is None:
+            return False
         transaction = Transaction(sender, recipient, amount)
         if Verification.verify_transaction(transaction, self.get_balance):
             self.open_transaction.append(transaction)
@@ -25,6 +27,8 @@ class Blockchain:
         return False
 
     def mine_block(self):
+        if self.public_key is None:
+            return False
         index = len(self.chain)
         previous_hash = hash_block(self.chain[-1])
         """ Add Reward """

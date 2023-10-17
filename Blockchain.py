@@ -29,7 +29,7 @@ class Blockchain:
 
     def mine_block(self):
         if self.public_key is None:
-            return False
+            return None
         index = len(self.chain)
         previous_hash = hash_block(self.chain[-1])
 
@@ -38,7 +38,7 @@ class Blockchain:
         for tx in copied_transaction:
             if not Wallet.verify_transaction(tx):
                 print('verify signature failed!!!')
-                return False
+                return None
         """ Add Reward """
         reward_transaction = Transaction('MINING', self.public_key, '', MINING_REWARD)
         copied_transaction.append(reward_transaction)
@@ -49,7 +49,7 @@ class Blockchain:
         self.chain.append(new_block)
         self.open_transaction = []
         self.save_data()
-        return True
+        return new_block
 
     def get_balance(self):
         participant = self.public_key

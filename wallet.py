@@ -8,9 +8,10 @@ from Crypto.Signature import PKCS1_v1_5
 
 
 class Wallet:
-    def __init__(self):
+    def __init__(self, node_id):
         self.public_key = None
         self.private_key = None
+        self.node_id = node_id
 
     def create_keys(self):
         private_key, public_key = self.generate_keys()
@@ -27,7 +28,7 @@ class Wallet:
     def save_keys(self):
         if self.public_key is not None and self.private_key is not None:
             try:
-                with open('wallet.txt', mode='wb') as f:
+                with open('wallet-{}.txt'.format(self.node_id), mode='wb') as f:
                     data = {'public_key': self.public_key, 'private_key': self.private_key}
                     f.write(pickle.dumps(data))
                 print('keys saved successfully!!!')
@@ -38,7 +39,7 @@ class Wallet:
 
     def load_keys(self):
         try:
-            with open('wallet.txt', mode='rb') as f:
+            with open('wallet-{}.txt'.format(self.node_id), mode='rb') as f:
                 data = pickle.loads(f.read())
                 self.private_key = data['private_key']
                 self.public_key = data['public_key']

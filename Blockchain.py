@@ -1,5 +1,8 @@
 from functools import reduce
 import pickle
+
+import requests.exceptions
+
 from block import Block
 from transaction import Transaction
 from utility.hash_utils import hash_block
@@ -10,12 +13,13 @@ MINING_REWARD = 10
 
 
 class Blockchain:
-    def __init__(self, public_key):
+    def __init__(self, public_key, node_id):
         genesis_block = Block(0, '', [], 100)
         self.chain = [genesis_block]
         self.open_transaction = []
         self.public_key = public_key
         self.peer_nodes = set()
+        self.node_id = node_id
         self.load_data()
 
     def add_transaction(self, sender, recipient, signature, amount):
@@ -53,7 +57,9 @@ class Blockchain:
         return new_block
 
     def get_balance(self):
+
         participant = self.public_key
+
         """ calculate total sent amount """
         sent_chain_tx = [[tx.amount for tx in block.transactions if tx.sender == participant] for block in
                          self.chain]
@@ -81,10 +87,11 @@ class Blockchain:
 
     def save_data(self):
         try:
-            with open('blockchain.txt', mode='wb') as file:
+            with open('blockchain-{}.txt'.format(self.node_id), mode='wb') as file:
                 data = {
                     'blockchain': self.chain,
-                    'ot': self.open_transaction
+                    'ot': self.open_transaction,
+                    'peer_nodes': self.peer_nodes
                 }
                 file.write(pickle.dumps(data))
         except IOError:
@@ -92,10 +99,11 @@ class Blockchain:
 
     def load_data(self):
         try:
-            with open('blockchain.txt', mode='rb') as file:
+            with open('blockchain-{}.txt'.format(self.node_id), mode='rb') as file:
                 context = pickle.loads(file.read())
                 self.chain = context['blockchain']
                 self.open_transaction = context['ot']
+                self.peer_nodes = context['peer_nodes']
                 print('Data successfully loaded!!!')
         except (IOError, IndexError):
             pass

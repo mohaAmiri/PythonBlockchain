@@ -1,3 +1,5 @@
+from argparse import ArgumentParser
+
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
@@ -52,7 +54,7 @@ def create_keys():
     wallet.create_keys()
     if wallet.save_keys():
         global blockchain
-        blockchain = Blockchain(wallet.public_key)
+        blockchain = Blockchain(wallet.public_key, port)
         response = {
             'public_key': wallet.public_key,
             'private_key': wallet.private_key,
@@ -70,7 +72,7 @@ def create_keys():
 def load_keys():
     if wallet.load_keys():
         global blockchain
-        blockchain = Blockchain(wallet.public_key)
+        blockchain = Blockchain(wallet.public_key, port)
         response = {
             'public_key': wallet.public_key,
             'private_key': wallet.private_key,
@@ -201,7 +203,14 @@ def get_nodes():
     return jsonify(response), 200
 
 
+
+
+
 if __name__ == '__main__':
-    wallet = Wallet()
-    blockchain = Blockchain(wallet.public_key)
-    app.run(host='0.0.0.0', port=5000)
+    parser = ArgumentParser()
+    parser.add_argument('-p', '--port', type=int, default=5000)
+    args = parser.parse_args()  # give list of args in run command
+    port = args.port
+    wallet = Wallet(port)
+    blockchain = Blockchain(wallet.public_key, port)
+    app.run(host='0.0.0.0', port=port)

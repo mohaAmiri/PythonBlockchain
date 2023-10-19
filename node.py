@@ -203,7 +203,34 @@ def get_nodes():
     return jsonify(response), 200
 
 
-
+@app.route('/broadcast-transaction', methods=['POST'])
+def broadcast_transaction():
+    values = request.get_json()
+    if not values:
+        response = {'message': 'No data found'}
+        return jsonify(response), 400
+    required = ['sender', 'recipient', 'amount', 'signature']
+    if not all(key in values for key in required):
+        response = {'message': 'some data is missing'}
+        return jsonify(response), 400
+    success = blockchain.add_transaction(values['sender'], values['recipient'], values['signature'], values['amount'],
+                                         is_receiving=True)
+    if success:
+        response = {
+            'message': 'Successfully added transaction',
+            'transaction': {
+                'sender': values['sender'],
+                'recipient': values['recipient'],
+                'amount': values['amount'],
+                'signature': values['signature']
+            }
+        }
+        return jsonify(response), 201
+    else:
+        response = {
+            'message': 'Creating transaction failed!!!'
+        }
+        return jsonify(response), 500
 
 
 if __name__ == '__main__':

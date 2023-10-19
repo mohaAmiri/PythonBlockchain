@@ -22,13 +22,25 @@ class Blockchain:
         self.node_id = node_id
         self.load_data()
 
-    def add_transaction(self, sender, recipient, signature, amount):
+    def add_transaction(self, sender, recipient, signature, amount, is_receiving=False):
         if self.public_key is None:
             return False
         transaction = Transaction(sender, recipient, signature, amount)
         if Verification.verify_transaction(transaction, self.get_balance):
             self.open_transaction.append(transaction)
             self.save_data()
+            if not is_receiving:
+                for node in self.peer_nodes:
+                    url = 'http://{}/broadcast-transaction'.format(node)
+                    try:
+                        response = requests.post(url,
+                                                 json={'sender': sender, 'recipient': recipient, 'amount': amount,
+                                                       'signature': signature})
+                        if response.status_code == 400 or response.status_code == 500:
+                            print('Transaction declined')
+                            return False
+                    except requests.exceptions.ConnectionError:
+                        continue
             return True
         return False
 
@@ -56,9 +68,11 @@ class Blockchain:
         self.save_data()
         return new_block
 
-    def get_balance(self):
-
-        participant = self.public_key
+    def get_balance(self, sender=None):
+        if sender is None:
+            participant = self.public_key
+        else:
+            participant = sender
 
         """ calculate total sent amount """
         sent_chain_tx = [[tx.amount for tx in block.transactions if tx.sender == participant] for block in

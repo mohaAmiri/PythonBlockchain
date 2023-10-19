@@ -5,7 +5,7 @@ from wallet import Wallet
 class Verification:
     @staticmethod
     def verify_transaction(transaction, get_balance):
-        user_balance = get_balance()
+        user_balance = get_balance(transaction.sender)
         if user_balance >= transaction.amount and Wallet.verify_transaction(transaction):
             return True
         else:

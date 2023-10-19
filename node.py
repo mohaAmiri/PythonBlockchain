@@ -31,6 +31,10 @@ def get_chain():
 
 @app.route('/mine', methods=['POST'])
 def mine():
+    if blockchain.resolve_conflicts:
+        response = {'message': 'resolve conflicts first, block not added'}
+        return jsonify(response), 409
+
     block = blockchain.mine_block()
     if block is not None:
         dict_block = block.__dict__.copy()
@@ -253,10 +257,21 @@ def broadcast_block():
             return jsonify(response), 409
     elif block['index'] > blockchain.chain[-1].index:
         response = {'message': "Blockchain seems to be differ from local blockchain."}
+        blockchain.resolve_conflicts = True
         return jsonify(response), 200
     else:
         response = {'message': "Blockchain seems to be shorter, block not added"}
         return jsonify(response), 409
+
+
+@app.route('/resolve-conflicts', methods=['POST'])
+def resolve_conflicts():
+    replaced = blockchain.resolve()
+    if replaced:
+        response = {'message': 'chain was replaced'}
+    else:
+        response = {'message': 'local chain kept'}
+    return jsonify(response), 200
 
 
 if __name__ == '__main__':

@@ -14,11 +14,10 @@ class Verification:
 
     @staticmethod
     def verify_chain(blockchain):
-        chain = blockchain.chain
-        for index, block in enumerate(chain):
+        for index, block in enumerate(blockchain):
             if index == 0:
                 continue
-            if not chain[index].previous_hash == hash_block(chain[index - 1]):
+            if not blockchain[index].previous_hash == hash_block(blockchain[index - 1]):
                 print('verify chain > previous_hash failed!!!')
                 return False
             if not Verification.valid_proof(block.transactions[:-1], block.previous_hash, block.proof):

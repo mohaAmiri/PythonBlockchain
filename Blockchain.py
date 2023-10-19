@@ -14,7 +14,7 @@ MINING_REWARD = 10
 
 class Blockchain:
     def __init__(self, public_key, node_id):
-        genesis_block = Block(0, '', [], 100)
+        genesis_block = Block(0, '', [], 100, 0)
         self.chain = [genesis_block]
         self.open_transaction = []
         self.public_key = public_key
@@ -66,7 +66,43 @@ class Blockchain:
         self.chain.append(new_block)
         self.open_transaction = []
         self.save_data()
+        for node in self.peer_nodes:
+            url = 'http://{}/broadcast-block'.format(node)
+            converted_block = new_block.__dict__.copy()
+            converted_block['transactions'] = [tx.__dict__ for tx in converted_block['transactions']]
+            try:
+                response = requests.post(url, json={'block': converted_block})
+                if response.status_code == 400 or response.status_code == 500:
+                    print('Block declined, need resolving')
+                if response.status_code == 409:
+                    print("conflict")
+            except requests.exceptions.ConnectionError:
+                continue
         return new_block
+
+    def add_block(self, block):
+        transactions = [Transaction(tx['sender'], tx['recipient'], tx['signature'], tx['amount']) for tx in
+                        block['transactions']]
+        # careful not to send reward transaction to valid proof => transactions[:-1]
+        proof_is_valid = Verification.valid_proof(transactions[:-1], block['previous_hash'], block['proof'])
+        hashes_match = hash_block(self.chain[-1]) == block['previous_hash']
+        if not proof_is_valid or not hashes_match:
+            return False
+        converted_block = Block(block['index'], block['previous_hash'], transactions, block['proof'],
+                                block['timestamp'])
+        self.chain.append(converted_block)
+        # to remove transaction after mining it
+        stored_transactions = self.open_transaction[:]
+        for itx in block['transactions']:
+            for opentx in stored_transactions:
+                if opentx.sender == itx['sender'] and opentx.recipient == itx['recipient'] \
+                        and opentx.amount == itx['amount'] and opentx.signature == itx['signature']:
+                    try:
+                        self.open_transaction.remove(opentx)
+                    except ValueError:
+                        print('item was already removed')
+        self.save_data()
+        return True
 
     def get_balance(self, sender=None):
         if sender is None:
